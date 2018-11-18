@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title></title>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link href="Content/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.2.621/styles/kendo.common-material.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.2.621/styles/kendo.material.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.2.621/styles/kendo.material.mobile.min.css" />
+    <script src="https://kendo.cdn.telerik.com/2017.2.621/js/jquery.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.2.621/js/kendo.all.min.js"></script>
+    <script src="Scripts/knockout-3.4.2.js"></script>
+    <script src="Scripts/knockout-kendo.js"></script>
+    <script>
+        $(document).ready(function () {
+            let URL = 'http://localhost:31894/api/comptes'
+
+            $("#kendo").click(function () {
+                $("#kendoGird").kendoGrid({
+                    dataSource: {
+                        transport: {
+                            dataType: "json",
+                            read: URL
+                        },
+                    },
+                    schema: {
+                        model: {
+                            id: "Numero",
+                            fields: {
+                                Numero: { type: "string" },
+                                Proprietaire: { type: "string" },
+                                Solde: { type: "nulber" }
+                            },
+                        }
+                    },
+                    groupable: true,
+                    sortable: true,
+                    columns: [{
+                        field: "Numero",
+                        title: "Numéro"
+                    },
+                    {
+                        field: "Proprietaire",
+                        title: "Propriétaire"
+                    },
+                    {
+                        field: "Solde",
+                        title: "Solde"
+                    }]
+                }
+                );
+            });
+
+            $("#ko_kendo").click(function () {
+                function KendoViewModel () {
+                    var self = this;
+                    self.items = ko.observableArray();
+                    $.ajax({
+                        url: URL,
+                        cache: false,
+                        type: 'GET',
+                        contentType: 'application/json',
+                        success: function (result) {
+                            self.items(result); //Put the response in ObservableArray
+                            console.log("REST appelé avec succes");
+                        }
+                    });                 
+                };
+                ko.applyBindings(new KendoViewModel(), document.getElementById('kogrid'));
+            });
+
+            $("#ko").click(function () {
+
+                function ComptesViewModel() {
+                    // Mémoriser le contexte principal du VM
+                    var self = this;
+
+                    // Liste des comptes
+                    self.comptes = ko.observableArray();
+
+                    // Initiliser le vecteur data
+                    $.ajax({
+                        url: URL,
+                        cache: false,
+                        type: 'GET',
+                        contentType: 'application/json',
+                        success: function (result) {
+                            self.comptes(result); //Put the response in ObservableArray
+                            console.log("REST appelé avec succes");
+                        }
+                    });
+                }
+                ko.applyBindings(new ComptesViewModel(), document.getElementById('tablebody'));
+            });
+
+            $("#jquery").click(function () {
+                $.ajax({
+                    url: URL,
+                    accepts: "application/json",
+                    success: function (resultat) {
+                        $("#tbody-jquery").empty();
+                        $.each(resultat, function (index, value) {
+                            $("#tbody-jquery").append(`
+                                            <tr>
+                                             <td>${value.Numero}</td >
+                                             <td>${value.Proprietaire}</td>
+                                             <td>${value.Solde}</td>
+                                           </tr>`);
+                        });
+                    }
+                });
+            });
+
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">ODDO Front</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" id="jquery" href="#">JQuery Ajax <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" id="ko" href="#">KnockoutJS</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" id="kendo" href="#">KendoGrid</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" id="ko_kendo" href="#">KnockoutJS/KendoGrid</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+                 <div class="card col-lg-6 mt-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h5> Invocation REST via JQuery</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped ">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Numéro</th>
+                                    <th scope="col">Propriétaire</th>
+                                    <th scope="col">Solde</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-jquery"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card  col-lg-6 mt-3">
+                    <div class="card-header bg-info text-white ">
+                        <h5> Invocation REST via KnockoutJS</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped ">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Numéro</th>
+                                    <th scope="col">Propriétaire</th>
+                                    <th scope="col">Solde</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablebody" data-bind="foreach:comptes">
+                                <tr>
+                                    <td data-bind="text:Numero"></td>
+                                    <td data-bind="text:Proprietaire"></td>
+                                    <td data-bind="text:Solde"></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            
+            </div>
+        <div class="row">
+            <div class="card  col-lg-6 mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h5> Invocation REST via KendoGrid </h5>
+                </div>
+                <div class="card-body">
+                    <div id="kendoGird"></div>
+                </div>
+            </div>
+            <div class="card  col-lg-6 mt-3">
+                <div class="card-header bg-success text-white">
+                    <h5> Invocation REST via KnockoutJS/KendoGrid </h5>
+                </div>
+                <div class="card-body">
+                    <div id="kogrid" data-bind="kendoGrid: { data: items, groupable: true, scrollable: true, sortable: true, pageable: { pageSize: 10 } }"> </div>       
+                </div>
+            </div>
+        </div>
+        </div>
+        <script src="Scripts/umd/popper.js"></script>
+        <script src="Scripts/bootstrap.min.js"></script>
+</body></html>
